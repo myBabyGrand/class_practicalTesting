@@ -2,8 +2,13 @@ package sample.cafekiosk.unit;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.cglib.core.Local;
 import sample.cafekiosk.unit.beverage.Americano;
 import sample.cafekiosk.unit.beverage.CafeLatte;
+import sample.cafekiosk.unit.order.Order;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -65,4 +70,23 @@ class CafeKioskTest {
         assertThat(cafeKiosk.getBeverageList()).isEmpty();
     }
 
+    @Test
+    void createOrderWithCurrentTime(){
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        cafeKiosk.add(new Americano());
+        Order order = cafeKiosk.createOrder(LocalDateTime.of(2024, 7, 1, 10, 0));
+
+        assertThat(order.getBeverageList()).hasSize(1);
+        assertThat(order.getBeverageList().get(0).getName()).isEqualTo("아메리카노");
+    }
+
+    @Test
+    void createOrderWithOutsideOpenTIme(){
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        cafeKiosk.add(new Americano());
+
+        assertThatThrownBy(() -> cafeKiosk.createOrder(LocalDateTime.of(2024, 7, 1, 9, 59)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(cafeKiosk.OUT_OF_OPEN_TIME_MSG);
+    }
 }
